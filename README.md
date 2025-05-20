@@ -97,3 +97,13 @@ JWT_REFRESH_EXPIRES_IN=7d
 GATEWAY_PORT=3000
 AUTH_PORT=3001
 EVENT_PORT=3002
+
+```
+
+## 실행방법
+
+root 프로젝트에서 아래 docker compose 실행 명령어로 실행
+
+```
+docker-compose up --build
+```
