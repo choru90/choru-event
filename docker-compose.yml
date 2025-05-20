@@ -1,0 +1,79 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: choru-event-mongo
+    restart: unless-stopped
+    ports:
+      - '27018:27017'
+    volumes:
+      - mongo-data:/data/db
+
+  nats:
+    image: nats:latest
+    container_name: choru-event-nats
+    restart: unless-stopped
+    ports:
+      - '4223:4222'   # client 연결
+      - '8222:8222'   # 관리 콘솔
+    command: -DV       # debug + verbose 로그
+
+  auth:
+    build:
+      context: .
+      dockerfile: apps/auth/Dockerfile
+    container_name: choru-event-auth
+    restart: on-failure
+    env_file: .env
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/auth_db
+      - NATS_URL=nats://nats:4222
+      - AUTH_PORT=${AUTH_PORT}
+    ports:
+      - '${AUTH_PORT}:${AUTH_PORT}'
+    depends_on:
+      - mongo
+      - nats
+
+  event:
+    build:
+      context: .
+      dockerfile: apps/event/Dockerfile
+    container_name: choru-event-event
+    restart: on-failure
+    env_file: .env
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/event_db
+      - NATS_URL=nats://nats:4222
+      - EVENT_PORT=${EVENT_PORT}
+    ports:
+      - '${EVENT_PORT}:${EVENT_PORT}'
+    depends_on:
+      - mongo
+      - nats
+
+  gateway:
+    build:
+      context: .
+      dockerfile: apps/gateway/Dockerfile
+    container_name: choru-event-gateway
+    restart: on-failure
+    env_file: .env
+    environment:
+      - AUTH_SERVICE_HOST=auth
+      - AUTH_SERVICE_PORT=${AUTH_PORT}
+      - EVENT_SERVICE_HOST=event
+      - EVENT_SERVICE_PORT=${EVENT_PORT}
+      - GATEWAY_PORT=${GATEWAY_PORT}
+      - NATS_URL=nats://nats:4222
+    ports:
+      - '${GATEWAY_PORT}:${GATEWAY_PORT}'
+    depends_on:
+      - auth
+      - event
+      - nats
+
+volumes:
+  mongo-data:
