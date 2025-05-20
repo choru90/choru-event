@@ -8,6 +8,7 @@
 - **Reward 기능**: 이벤트별 보상 생성·조회·유저 보상 요청·관리자/감사자 요청 내역 조회
 
 각 서비스는 NATS 로 통신하고, MongoDB 에 도메인 데이터를 저장합니다.
+<img width="1084" alt="스크린샷 2025-05-20 오후 12 13 49" src="https://github.com/user-attachments/assets/c84a8115-f6e2-4e41-a1dc-c5c92be267f5" />
 
 ---
 
